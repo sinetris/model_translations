@@ -1,11 +1,15 @@
 = ModelTranslations
 
-Minimal implementation of Globalize2 style model translations. Rails 2.2 is
-required.
+Fork of the fantastic model_translations by janne. Minimal implementation of Globalize2 style model translations with validates_uniqueness_of for
+translated attributes. Rails 2.2 is required.
 
 == Installation
 
-  script/plugin install git://github.com/janne/model_translations.git
+  script/plugin install git://github.com/curthasselschwert/model_translations.git
+  
+or as a git submodule
+  
+  git add submodule git://github.com/curthasselschwert/model_translations.git vendor/plugins/model_translations
 
 == Implementation
 
@@ -82,9 +86,45 @@ Note that the following example requires Rails 2.3 since default_scope is used.
   Post.translated.ordered_by_title # All posts with the current locale sorted on title
   Post.with_title('My translated title') # Equivalent to Post.find_all_by_title
 
-As you can see including the model_translations on all querys by default gives 
-us (apart from reducing the number of querys to the database) the possibility
+As you can see including the model_translations on all queries by default gives 
+us (apart from reducing the number of queries to the database) the possibility
 of using the post_translations table for further query customization.
 
+== Finding missing translations
+
+The method +#missing_translations+ is added as a convenience. Use it to find all of the records in your
+database that are not translated into the current locale.
+
+  Post.missing_translations
+  
+To find records missing translations into a specific locale, pass the local as a symbol to the method.
+
+  Post.missing_translations(:es)
+  
+== Finding translated locales
+
+To find all locales to which the model has been translated, use +#translated_locales+.
+
+  Post.translated_locales
+  
+This returns an array of strings containing the locales for which a translation exists.
+
+== Validating unique translated fields
+
+To validate the uniqueness of a translated field, use +validates_uniqueness_of+ as normal.
+
+  class Post < ActiveRecord::Base
+    translates :title
+    
+    validates_uniqueness_of :title
+  end
+  
+model_translations will detect if the column is translated or not and perform the required lookup, 
+adding the usual +:taken+ error to +ActiveRecord::Errors+
+
+== TODO
+
+  - Create a standalone test environment to test plugin outside of rails
 
 Copyright (c) 2008 Jan Andersson, released under the MIT license
+Copyright (c) 2010 Curt Hasselschwert, released under the MIT license

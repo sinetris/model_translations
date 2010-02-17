@@ -6,10 +6,10 @@ module ActiveRecord
         add_translatable_attributes(attributes)
       end
 	  
-  	  def missing_translations(language = I18n.locale.to_s)
+  	  def missing_translations(language = I18n.locale)
     		translation_class = Object.const_get("#{self.to_s}Translation")
     		all( :joins => :model_translations,
-    			   :conditions => ["#{self.quoted_table_name}.#{connection.quote_column_name('id')} NOT IN (SELECT #{self.name.underscore+'_id'} FROM #{translation_class.quoted_table_name} WHERE locale = ?)", I18n.locale.to_s])
+    			   :conditions => ["#{self.quoted_table_name}.#{connection.quote_column_name('id')} NOT IN (SELECT #{self.name.underscore+'_id'} FROM #{translation_class.quoted_table_name} WHERE locale = ?)", language.to_s])
   	  end
   	  
   	  def validates_uniqueness_of(*attr_names)
