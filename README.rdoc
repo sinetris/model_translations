@@ -1,7 +1,7 @@
 = ModelTranslations
 
-Fork of the fantastic model_translations by janne. Minimal implementation of Globalize2 style model translations with validates_uniqueness_of for
-translated attributes. Rails 2.2 is required.
+Fork of the fantastic model_translations[http://github.com/janne/model_translation] by Jan Andersson. Minimal implementation of 
+Globalize2 style model translations with validates_uniqueness_of for translated attributes. Rails 2.2 is required.
 
 == Installation
 
@@ -119,8 +119,7 @@ To validate the uniqueness of a translated field, use +validates_uniqueness_of+ 
     validates_uniqueness_of :title
   end
   
-model_translations will detect if the column is translated or not and perform the required lookup, 
-adding the usual +:taken+ error to +ActiveRecord::Errors+
+model_translations will detect if the column is translated or not and perform the required validation.
 
 == TODO
 
