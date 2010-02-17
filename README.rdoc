@@ -92,7 +92,7 @@ of using the post_translations table for further query customization.
 
 == Finding missing translations
 
-The method +#missing_translations+ is added as a convenience. Use it to find all of the records in your
+The method +missing_translations+ is added as a convenience. Use it to find all of the records in your
 database that are not translated into the current locale.
 
   Post.missing_translations
@@ -103,7 +103,7 @@ To find records missing translations into a specific locale, pass the local as a
   
 == Finding translated locales
 
-To find all locales to which the model has been translated, use +#translated_locales+.
+To find all locales to which the model has been translated, use +translated_locales+.
 
   Post.translated_locales
   
