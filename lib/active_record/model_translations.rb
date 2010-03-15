@@ -12,7 +12,7 @@ module ActiveRecord
              :conditions => ["#{self.quoted_table_name}.#{connection.quote_column_name('id')} NOT IN (SELECT #{self.name.underscore+'_id'} FROM #{translation_class.quoted_table_name} WHERE locale = ?)", language.to_s])
       end
       
-      def validates_uniqueness_of(*attr_names)
+      def validates_uniqueness_translation_of(*attr_names)
         configuration = { :case_sensitive => true }
         configuration.update(attr_names.extract_options!)
         
