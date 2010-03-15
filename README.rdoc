@@ -6,27 +6,12 @@ Globalize2 style model translations with validates_uniqueness_of for translated 
 == Installation
 
   script/plugin install git://github.com/sinetris/model_translations.git
-  
-or as a git submodule
-  
-  git add submodule git://github.com/sinetris/model_translations.git vendor/plugins/model_translations
 
 == Implementation
 
-  class Post < ActiveRecord::Base
-    translates :title, :text
-  end
-
-Allows you to translate values for the attributes :title and :text per locale:
-
-  I18n.locale = :en
-  post.title # ModelTranslations rocks!
-  I18n.locale = :sv
-  post.title # Rockar fett!
-
 In order to make this work you need to take care of creating the appropriate
-database migrations manually. The migration for the above Post model could look
-like this:
+database migrations manually.
+Example:
 
   class CreatePosts < ActiveRecord::Migration
     def self.up
@@ -46,6 +31,20 @@ like this:
       drop_table :post_translations
     end
   end
+
+Change the Post model to look like this:
+
+  class Post < ActiveRecord::Base
+    translates
+  end
+
+Allows you to translate values for the attributes :title and :text per locale:
+
+  I18n.locale = :en
+  post.title # ModelTranslations rocks!
+  I18n.locale = :sv
+  post.title # Rockar fett!
+
 
 To migrate from a model with existing attributes to one with translated
 attributes the migration could look like this.
@@ -74,7 +73,7 @@ association for their corresponding translation table. Use this to your advantag
 Note that the following example requires Rails 2.3 since default_scope is used.
 
   class Post < ActiveRecord::Base
-    translates :title, :text
+    translates
     
     default_scope :include => :model_translations
     
@@ -114,7 +113,7 @@ This returns an array of strings containing the locales for which a translation 
 To validate the uniqueness of a translated field, use +validates_uniqueness_of_translated+.
 
   class Post < ActiveRecord::Base
-    translates :title
+    translates
     
     validates_uniqueness_of_translated :title
   end
