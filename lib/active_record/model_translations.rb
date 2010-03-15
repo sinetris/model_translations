@@ -1,13 +1,14 @@
 module ActiveRecord
   module ModelTranslations
     module ClassMethods
-      def translates(*attributes)       
-        add_translation_model_and_logic unless included_modules.include?(InstanceMethods)
-        add_translatable_attributes(attributes)
+      def translates(*options)
+        options = options.first
+        add_translation_model_and_logic(options) unless included_modules.include?(InstanceMethods)
+        add_translatable_attributes
       end
 
       def missing_translations(language = I18n.locale)
-        translation_class = Object.const_get("#{self.to_s}Translation")
+        translation_class = get_translation_class
         all( :joins => :model_translations,
              :conditions => ["#{self.quoted_table_name}.#{connection.quote_column_name('id')} NOT IN (SELECT #{self.name.underscore+'_id'} FROM #{translation_class.quoted_table_name} WHERE locale = ?)", language.to_s])
       end
@@ -82,10 +83,21 @@ module ActiveRecord
       end
 
       private
-      def add_translation_model_and_logic
+      def get_translation_class
+        Object.const_get("#{self.to_s}Translation")
+      end
+      
+      def add_translation_model_and_logic(options)
         type = self.to_s.underscore
         translation_class_name = "#{self.to_s}Translation"
-        translation_class = Class.new(ActiveRecord::Base) { belongs_to type.to_sym }
+        
+        translation_class = Class.new(ActiveRecord::Base) {
+          belongs_to type.to_sym
+          options[:belongs_to].each { |item|
+            belongs_to item
+          } unless options.nil? && options[:belongs_to].nil?
+        }
+        
         Object.const_set(translation_class_name, translation_class)
 
         include InstanceMethods
@@ -94,7 +106,11 @@ module ActiveRecord
         after_save :update_translations!
       end
 
-      def add_translatable_attributes(attributes)
+      def add_translatable_attributes
+        attributes = get_translation_class.column_names.reject{|item| item =~ /_id$|^id$|^locale$|_at$/ }
+        attributes_belong_to = get_translation_class.column_names.select{|item| item =~ /_id$/ }.reject{|item| item =~ /^#{self.name.underscore+'_id'}$/ }
+        attributes += attributes_belong_to.map{|item| item = item[0..-4]}
+        
         attributes = attributes.collect{ |attribute| attribute.to_sym }
         attributes.each do |attribute|
           define_method "#{attribute}=" do |value|
@@ -112,7 +128,7 @@ module ActiveRecord
             translation = model_translations.detect { |t| t.locale == I18n.locale.to_s } ||
                           model_translations.detect { |t| t.locale == I18n.default_locale.to_s } ||
                           model_translations.first
-            translation ? translation[attribute] : nil
+            translation ? (translation[attribute] ? translation[attribute] : translation.send(attribute)) : nil
           end
         end
       end
