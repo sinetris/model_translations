@@ -139,7 +139,7 @@ class ModelTranslationsTest < ActiveSupport::TestCase
     assert_equal 'John', post.user.name
     I18n.locale = :es
     es_u = User.create(:name => 'Carlos')
-    Post.first.update_attribute :title, 'Spanish Title'
+    Post.first.update_attribute :title, 'Título Español'
     Post.first.update_attribute :user, es_u
     I18n.locale = :en
     assert_equal 'John', Post.first.user.name

@@ -163,7 +163,13 @@ To find records missing translations into a specific locale, pass the local as a
 
 To find all locales to which the model has been translated, use +translated_locales+.
 
-  Post.translated_locales
+  
+  I18n.locale = :en
+  post.title = 'English title'
+  I18n.locale = :it
+  post.title = 'Titolo italiano'
+  post.translated_locale #=> ["it", "en"]
+  
   
 This returns an array of strings containing the locales for which a translation exists.
 
