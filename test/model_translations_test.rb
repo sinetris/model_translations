@@ -131,7 +131,7 @@ class ModelTranslationsTest < ActiveSupport::TestCase
     assert_equal @missing_translations, [post]
   end
   
-  test "translated model belong_to" do
+  test "translated model belongs_to" do
     post = Post.first
     en_u = User.create(:name => 'John')
     post.user = en_u

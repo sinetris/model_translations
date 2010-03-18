@@ -46,6 +46,65 @@ Allows you to translate values for the attributes :title and :text per locale:
   post.title # Rockar fett!
 
 
+=== Implementation with translated model belongs_to
+
+In order to make this work you need to create the appropriate
+FK in the _model__translation table
+Example:
+
+  class CreateUsers < ActiveRecord::Migration
+    def self.up
+      create_table :users do |t|
+        t.string     :name
+        t.timestamps
+      end
+    end
+    def self.down
+      drop_table :users
+    end
+  end
+  
+  class CreatePosts < ActiveRecord::Migration
+    def self.up
+      create_table :posts do |t|
+        t.timestamps
+      end
+      create_table :post_translations do |t|
+        t.string     :locale
+        t.references :post
+        *t.references :user*
+        t.string     :title
+        t.text       :text
+        t.timestamps
+      end
+    end
+    def self.down
+      drop_table :posts
+      drop_table :post_translations
+    end
+  end
+
+Create a Post model and an User model that look like these:
+
+  class Post < ActiveRecord::Base
+    translates {
+      belongs_to :user
+    }
+  end
+  
+  class User < ActiveRecord::Base
+  end
+
+Allows you to associate a User to each translation
+
+  I18n.locale = :en
+  post.user = User.create(:name => 'John')
+  I18n.locale = :es
+  post.user = User.create(:name => 'Carlos')
+  I18n.locale = :en
+  post.user.name # John
+
+
 To migrate from a model with existing attributes to one with translated
 attributes the migration could look like this.
 
