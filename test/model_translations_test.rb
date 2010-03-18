@@ -4,6 +4,11 @@ ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database => ":me
 
 def setup_db
   ActiveRecord::Schema.define(:version => 1) do
+    create_table :users do |t|
+      t.string :name
+      t.timestamps
+    end
+    
     create_table :posts do |t|
       t.string     :not_translated
       t.timestamps
@@ -11,6 +16,7 @@ def setup_db
     create_table :post_translations do |t|
       t.string     :locale
       t.references :post
+      t.references :user
       t.string     :title
       t.text       :text
       t.timestamps
@@ -18,17 +24,27 @@ def setup_db
   end
 end
 
+setup_db
+
 def teardown_db
   ActiveRecord::Base.connection.tables.each do |table|
     ActiveRecord::Base.connection.drop_table(table)
   end
 end
 
-class Post < ActiveRecord::Base
-  translates :title, :text
-  validates_presence_of :title
-  validates_uniqueness_of :title, :not_translated
+class User < ActiveRecord::Base
 end
+    
+class Post < ActiveRecord::Base
+  translates {
+    belongs_to :user
+  }
+  validates_presence_of :title
+  validates_uniqueness_of :not_translated
+  validates_uniqueness_translation_of :title
+end
+
+teardown_db
 
 class ModelTranslationsTest < ActiveSupport::TestCase
   def setup
@@ -88,7 +104,7 @@ class ModelTranslationsTest < ActiveSupport::TestCase
     assert_equal 'Svensk text', post.text
   end
   
-  test 'validates_uniqueness_of should work for translated attribute' do
+  test 'validates_uniqueness_translation_of should work for translated attribute' do
     post = Post.new
     post.title = 'English title'
     assert_equal false, post.valid?
@@ -98,10 +114,6 @@ class ModelTranslationsTest < ActiveSupport::TestCase
     post = Post.new
     post.not_translated = 'Some Text'
     assert_equal false, post.valid?
-  end
-  
-  test 'translated methods should return array of translated attributes' do
-    assert_equal Post.translated_methods, [:title,:text]
   end
   
   test 'translated_locales should return translated locales' do
@@ -117,5 +129,21 @@ class ModelTranslationsTest < ActiveSupport::TestCase
     I18n.locale = :es
     @missing_translations = Post.missing_translations
     assert_equal @missing_translations, [post]
-  end  
+  end
+  
+  test "translated model belong_to" do
+    post = Post.first
+    en_u = User.create(:name => 'John')
+    post.user = en_u
+    post.save
+    assert_equal 'John', post.user.name
+    I18n.locale = :es
+    es_u = User.create(:name => 'Carlos')
+    Post.first.update_attribute :title, 'Spanish Title'
+    Post.first.update_attribute :user, es_u
+    I18n.locale = :en
+    assert_equal 'John', Post.first.user.name
+    I18n.locale = :es
+    assert_equal 'Carlos', Post.first.user.name
+  end
 end

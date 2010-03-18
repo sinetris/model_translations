@@ -1,9 +1,8 @@
 module ActiveRecord
   module ModelTranslations
     module ClassMethods
-      def translates(*options)
-        options = options.first
-        add_translation_model_and_logic(options) unless included_modules.include?(InstanceMethods)
+      def translates(&options)
+        add_translation_model_and_logic(&options) unless included_modules.include?(InstanceMethods)
         add_translatable_attributes
       end
 
@@ -87,17 +86,15 @@ module ActiveRecord
         Object.const_get("#{self.to_s}Translation")
       end
       
-      def add_translation_model_and_logic(options)
+      def add_translation_model_and_logic(&options)
         type = self.to_s.underscore
         translation_class_name = "#{self.to_s}Translation"
         
         translation_class = Class.new(ActiveRecord::Base) {
           belongs_to type.to_sym
-          options[:belongs_to].each { |item|
-            belongs_to item
-          } unless options.nil? && options[:belongs_to].nil?
+          self.instance_eval &options if block_given?
         }
-        
+
         Object.const_set(translation_class_name, translation_class)
 
         include InstanceMethods
@@ -110,7 +107,7 @@ module ActiveRecord
         attributes = get_translation_class.column_names.reject{|item| item =~ /_id$|^id$|^locale$|_at$/ }
         attributes_belong_to = get_translation_class.column_names.select{|item| item =~ /_id$/ }.reject{|item| item =~ /^#{self.name.underscore+'_id'}$/ }
         attributes += attributes_belong_to.map{|item| item = item[0..-4]}
-        
+
         attributes = attributes.collect{ |attribute| attribute.to_sym }
         attributes.each do |attribute|
           define_method "#{attribute}=" do |value|
