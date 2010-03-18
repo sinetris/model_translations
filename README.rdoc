@@ -49,7 +49,7 @@ Allows you to translate values for the attributes :title and :text per locale:
 === Implementation with translated model belongs_to
 
 In order to make this work you need to create the appropriate
-FK in the _model__translation table
+FK in the model_translation table
 Example:
 
   class CreateUsers < ActiveRecord::Migration
@@ -72,7 +72,7 @@ Example:
       create_table :post_translations do |t|
         t.string     :locale
         t.references :post
-        *t.references :user*
+        t.references :user
         t.string     :title
         t.text       :text
         t.timestamps
